@@ -135,7 +135,8 @@ def get_error(proj: int) -> str:
             # i:OK\g:ERR=NO_ERROR\
             err = out [11:-1]
             print(err)
-            err = None if err == "NO_ERROR" else err
+            if ((err == "NO_ERROR") or (len(err) < 6)):
+                err = None 
             print(f"Projector {proj} err status read as: ", err)
         return err
     except Exception as e:
@@ -174,6 +175,8 @@ def get_temps(proj: int) -> list:
         if out != "":
             print(out)
             temps = out[14:-1].split(",")
+            if type(temps) != list:
+                return None
             temps = [float(temp) for temp in temps]
             temps.insert(0, proj)
             return temps
@@ -194,12 +197,13 @@ while True:
                 send_power_status(projector, pwr)
             time.sleep(1)
             temps = get_temps(projector)
-            print(f"Sending projector {projector} temps: ", temps)
-            send_temps(temps)
+            if temps is not None:
+                print(f"Sending projector {projector} temps: ", temps)
+                send_temps(temps)
             time.sleep(1)
-        time.sleep(600)
 
     except Exception as e:
         print(f"Exception getting power or temperature: {e}")
         if DEBUG:
             raise
+    time.sleep(300)
